@@ -5,6 +5,8 @@ This directory contains the **canonical, authoritative documentation** for the
 
 If it is not written here, **it is not authoritative**.
 
+← [Return to project root README](../README.md)
+
 ---
 
 ## Authority Rules
@@ -21,47 +23,44 @@ Read files in numerical order unless directed otherwise.
 
 ### Core Identity & Governance
 
-- **00_PROJECT_CONSTITUTION.md**  
-  Project purpose, non-goals, hard constraints, and invariants.  
-  *Defines what this project is and is not.*
+- **[00_PROJECT_CONSTITUTION.md](00_PROJECT_CONSTITUTION.md)**  
+  Project purpose, non-goals, hard constraints, and invariants.
 
-- **06_RULES_AND_PROCESS_LOG.md**  
+- **[06_RULES_AND_PROCESS_LOG.md](06_RULES_AND_PROCESS_LOG.md)**  
   How work is done, how authority is enforced, and how drift is prevented.
 
-- **07_UPDATE_AND_MEMORY_RULES.md**  
+- **[07_UPDATE_AND_MEMORY_RULES.md](07_UPDATE_AND_MEMORY_RULES.md)**  
   Rules for what must be saved, where it must be saved, and what may remain ephemeral.
 
 ---
 
 ### Current State & Planning
 
-- **01_CONTEXT_PACK.md**  
+- **[01_CONTEXT_PACK.md](01_CONTEXT_PACK.md)**  
   Snapshot of the current project state, blockers, and near-term focus.
 
-- **02_DECISION_LOG.md**  
-  Binding decisions and their rationale.  
-  *If a decision is not logged here, it does not exist.*
+- **[02_DECISION_LOG.md](02_DECISION_LOG.md)**  
+  Binding decisions and their rationale.
 
-- **03_BACKLOG.md**  
+- **[03_BACKLOG.md](03_BACKLOG.md)**  
   Non-binding ideas, planned work, and exploratory items.
 
 ---
 
 ### Technical Definition
 
-- **04_SPECS_AND_INTERFACES.md**  
+- **[04_SPECS_AND_INTERFACES.md](04_SPECS_AND_INTERFACES.md)**  
   Binding technical facts, interfaces, and responsibility boundaries.
 
-- **05_RISK_REGISTER.md**  
+- **[05_RISK_REGISTER.md](05_RISK_REGISTER.md)**  
   Known risks, failure modes, and mitigation strategies.
 
 ---
 
 ### Protocols
 
-- **brain_spine_message_contract_v0.1.md**  
-  Normative specification for the Brain ↔ Spine communication contract.  
-  Transport-agnostic, safety-first, and versioned.
+- **[brain_spine_message_contract_v0.1.md](brain_spine_message_contract_v0.1.md)**  
+  Normative specification for the Brain ↔ Spine communication contract.
 
 ---
 
@@ -69,10 +68,10 @@ Read files in numerical order unless directed otherwise.
 
 Suggested order for new readers:
 
-1. `00_PROJECT_CONSTITUTION.md`
-2. `01_CONTEXT_PACK.md`
-3. `04_SPECS_AND_INTERFACES.md`
-4. `brain_spine_message_contract_v0.1.md`
+1. [00_PROJECT_CONSTITUTION.md](00_PROJECT_CONSTITUTION.md)
+2. [01_CONTEXT_PACK.md](01_CONTEXT_PACK.md)
+3. [04_SPECS_AND_INTERFACES.md](04_SPECS_AND_INTERFACES.md)
+4. [brain_spine_message_contract_v0.1.md](brain_spine_message_contract_v0.1.md)
 5. Remaining documents as needed
 
 ---
@@ -84,10 +83,11 @@ This documentation intentionally prioritizes:
 - Interfaces over implementations
 - Learning value over optimization
 
-Future features, experiments, and ideas belong in the **Backlog** until promoted.
+Future features, experiments, and ideas belong in the  
+**[Backlog](03_BACKLOG.md)** until promoted.
 
 ---
 
-_End of documentation index_
 ← [Return to project root README](../README.md)
 
+_End of documentation index_
