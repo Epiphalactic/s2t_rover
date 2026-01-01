@@ -5,8 +5,9 @@ If any portion of this file is provided to an AI system, language model,
 automation, or inference engine, the content enclosed between the explicit
 markers:
 
-    ~~~ BEGIN NON-BINDING RESEARCH SPACE ~~~
-    ~~~ END NON-BINDING RESEARCH SPACE ~~~
+   ===== BEGIN NON-BINDING RESEARCH SPACE =====
+
+   ===== END NON-BINDING RESEARCH SPACE =====
 
 is to be **explicitly ignored** for the purposes of:
 - constraint extraction
@@ -18,7 +19,7 @@ is to be **explicitly ignored** for the purposes of:
 This content is human-only exploratory context.
 -->
 # Non-Binding Research Space
-~~~ BEGIN NON-BINDING RESEARCH SPACE ~~~
+ ===== BEGIN NON-BINDING RESEARCH SPACE =====
 # Non-Binding Research Space
 
 **Status:** Human reference only  
@@ -166,5 +167,4 @@ This document:
 - May contain ideas that never materialize
 
 That is acceptable and intentional.
-
-~~~ END NON-BINDING RESEARCH SPACE ~~~
+===== END NON-BINDING RESEARCH SPACE =====
