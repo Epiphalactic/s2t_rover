@@ -1,4 +1,4 @@
-<!--
+
 AI / LLM NOTICE (NON-AUTHORITATIVE):
 
 If any portion of this file is provided to an AI system, language model,
@@ -167,4 +167,5 @@ This document:
 - May contain ideas that never materialize
 
 That is acceptable and intentional.
+
 ===== END NON-BINDING RESEARCH SPACE =====
