@@ -89,3 +89,5 @@ Future features, experiments, and ideas belong in the **Backlog** until promoted
 ---
 
 _End of documentation index_
+← [Return to project root README](../README.md)
+
