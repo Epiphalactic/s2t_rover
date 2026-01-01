@@ -21,5 +21,8 @@ This is a **learning and research platform**, not a product.
 
 ## Documentation & Authority
 
-All **authoritative documentation** lives in:
+All **authoritative documentation** lives in: 
+[Project documentation](docs/)
+
+
 
