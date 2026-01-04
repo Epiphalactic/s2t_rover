@@ -2,7 +2,7 @@
 
 **Project:** Scout32 Distributed Research Rover  
 **Status:** Canonical (Foundational)  
-**Last Updated:** 2025-01-XX  
+**Last Updated:** 2026-01-XX  
 **Authority:** Project Constitution v0.1  
 
 ---
@@ -69,10 +69,10 @@ The following conventions are **mandatory**:
 - **Class:** Microcontroller
 
 **Responsibilities:**
-- Deterministic, real-time tasks
-- Motor control
+- Deterministic, real-time execution
+- Motion command execution
 - Sensor acquisition
-- Safety reflexes
+- Reflex-level safety enforcement
 
 **Timing Characteristics:**
 - Hard or near-hard real-time
@@ -87,12 +87,13 @@ The following boundary is **binding**:
 | Function               | Brain (SBC) | Spine (MCU) |
 |------------------------|-------------|-------------|
 | High-level planning    | ✔           | ✖           |
-| Motor commutation      | ✖           | ✔           |
+| Motion execution       | ✖           | ✔           |
 | Control loops          | ✖           | ✔           |
 | Sensor polling         | ✖           | ✔           |
 | Safety cutoffs         | ✖           | ✔           |
 | State aggregation      | ✔           | ✔           |
-| Logging                | ✔           | Optional    |
+| Persistent logging     | ✔           | ✖           |
+| State exposure         | ✔           | ✔           |
 
 **Hard rules:**
 - The Brain never directly drives hardware
@@ -109,7 +110,7 @@ The Brain must **not** depend on:
 - Specific motor controllers
 - Wheel geometry details
 
-These are implementation details owned by the motion subsystem.
+These are implementation details owned by the real-time motion execution layer.
 
 ---
 
@@ -146,6 +147,41 @@ At minimum, the motion subsystem must expose:
 - Deterministic parsing
 - Versioned message formats
 - Backward compatibility where feasible
+
+---
+
+### 5.3 Spine-Mediated Module Interfaces (Binding)
+
+The Brain communicates **exclusively** with the Spine using the Brain ↔ Spine
+Message Contract.
+
+The Brain SHALL NOT communicate directly with:
+- motion hardware
+- motor controllers
+- actuator drivers
+- module microcontrollers
+
+All attachable subsystems, including motion controllers, are treated as
+**modules** and communicate only with the Spine via module-specific interfaces.
+
+Module interfaces:
+- are local to the Spine
+- are not visible to the Brain
+- are not part of the Brain ↔ Spine Message Contract
+
+Module liveness, heartbeat, or health signaling:
+- is informational only
+- SHALL NOT grant authority
+- SHALL NOT keep motion enabled
+- SHALL NOT substitute for Brain ↔ Spine keepalive
+
+Final authority over motion remains with the Spine and is enforced via:
+- logical permission gating
+- deterministic timeout behavior
+- structural gating (ENABLE / HV_ACTUATION)
+
+This separation ensures that high-level compute systems remain independent
+of physical actuation hardware until explicitly authorized by the Spine.
 
 ---
 
@@ -207,16 +243,23 @@ Self-identification is **desired** but not yet specified.
 
 ---
 
-## 9. Safety Interfaces (Binding Philosophy)
+## 9. Safety Interfaces (Binding Invariants)
 
 The Spine has authority to:
 - Disable motion
 - Enter safe states
 
+The following safety invariants are **mandatory**:
+
+- Loss of Brain communication SHALL result in a safe state
+- Absence of valid motion commands SHALL result in no motion
+- Malformed or unknown messages SHALL be ignored or faulted safely
+- Safety behavior SHALL NOT depend on SBC availability
+
 Safety actions must:
 - Be deterministic
 - Be local
-- Not depend on SBC availability
+- Be verifiable
 
 ---
 
@@ -248,7 +291,8 @@ Subsystems must expose:
 - Errors
 - Faults
 
-Logging format and transport are **not yet fixed**.
+Persistent logging is owned by the Brain.  
+The Spine must expose observability data but is not required to store it.
 
 > Silent failure is forbidden.
 

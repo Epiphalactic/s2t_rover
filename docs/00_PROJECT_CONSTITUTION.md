@@ -5,6 +5,8 @@
 **Status:** Canonical  
 **Last Updated:** 2025-01-XX  
 
+S2T (Scout to Titan) is the project identity and development arc, representing the deliberate progression from the initial Scout platform to the final Titan rover architecture.
+
 ---
 
 ## 1. Purpose (WHY)
@@ -89,6 +91,31 @@ Code must be:
 
 > Cleverness without clarity is not acceptable.
 
+### 3.8 Naming and Identity (Hard Constraint)
+
+All components of this project—including hardware modules, sensors, firmware artifacts, telemetry fields, code identifiers, logs, and documentation—MUST follow the canonical naming rules defined in:
+
+- `08_NAMING_CONVENTIONS.md`
+
+Naming is treated as a **first-class architectural constraint**.
+
+Hard rules:
+
+- Names encode **identity**, not implementation
+- Assigned identities are **immutable**
+- Renaming in place is forbidden
+- Supersession MUST occur via new identities, not overwriting
+- Historical names MUST remain valid for interpretation of logs, data, and documentation
+
+Any deviation from the naming conventions constitutes an architectural violation and MUST NOT be introduced without:
+- An explicit update to the naming conventions document, and
+- A corresponding entry in the Decision Log
+
+Consistency of naming is required to preserve long-term clarity, safety, and learnability in a distributed system.
+
+This includes Appendix A (Narrative vs Technical Terminology), which is binding and strictly enforced.
+
+
 ---
 
 ## 4. Invariants (Identity-Level Rules)
@@ -131,6 +158,8 @@ Canonical document ownership:
 - **Ideas / experiments / ambitions:** `03_BACKLOG.md` (until promoted)
 
 > If it is not written, it is not real.
+
+Use of Large Language Models is governed by llms.txt, which defines how non-authoritative tools must interpret and operate within canonical project documents.
 
 ---
 

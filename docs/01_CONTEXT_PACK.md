@@ -2,7 +2,6 @@
 
 **Project:** Scout32 Distributed Research Rover  
 **Status:** Active  
-**Last Updated:** 2025-01-XX  
 **Canonical Authority:** Project Constitution v0.1  
 
 ---
@@ -15,214 +14,111 @@ Establish a **stable, professional-grade distributed robotics platform** that:
 - Supports modular growth over time
 - Serves as a long-term learning and research system
 
-Primary learning domains:
-
-- Embedded systems
-- Robotics
-- Distributed architectures
-- Autonomy (explicitly gated)
-
 **Current phase priority:**  
 Architecture correctness, tooling, and system hygiene  
 **over** feature completeness.
 
 ---
 
-## 2. System Architecture (Current)
+## 2. Current Snapshot (Authoritative State)
 
-### 2.1 Brain–Spine Model
+This section represents the **current operational truth** of the project.  
+It is updated **only when the present state changes**.
 
-#### Titan — Brain (SBC)
+- **Phase:** Stage 2 — Infrastructure Hardening
+- **Power:** Stable; Raspberry Pi operates without throttling under load
+- **Spine firmware:** Builds, flashes, and boots reliably; OLED operational (Spine-local display)
+- **Brain ↔ Spine protocol stack:** Implemented and building on Spine
+  - Wire-format constants
+  - CRC-16 (header) and CRC-32 (payload) per contract v0.2
+  - Header parsing and validation
+  - Full packet validation
+  - Stream framer with resynchronization and bounded buffering
+- **Brain ↔ Spine transport:** Not yet wired into Spine runtime (USB/CAN adapters pending)
+- **Motion:** Not implemented; Spine remains SAFE-by-default
+- **Primary blockers:** None
+- **Next gating milestone:**  
+  Wire validated byte streams into the Spine protocol framer and enforce behavior via state machine logic
 
-- **Hardware:** Raspberry Pi 3B
-- **OS:** Headless Linux node
+**Evidence:**
+- Spine protocol stack compiles and links into `scout_spine`
+- Pico SDK + CMake build produces working `.uf2`
+- Stream framer validated via clean builds and integration
+- Power stability verified under load
+
+---
+
+## 3. System Architecture (Current)
+
+### 3.1 Brain — Titan (SBC)
+
+- **Hardware:** Raspberry Pi (Titan)
+- **OS:** Headless Raspberry Pi OS (Lite)
 
 **Responsibilities:**
-- High-level logic
-- Planning and orchestration
-- GitOps workflow
-- Build tooling
-- Human interface (SSH, development tools)
+- High-level logic and orchestration
+- Human interface (SSH, tooling)
+- Build system and deployment
+- Future protocol packet generation and validation (Brain-side mirror)
 
 ---
 
-#### Scout — Spine (MCU)
+### 3.2 Spine — Scout (MCU)
 
-- **Hardware:** RP2040 Pico (temporary / initial MCU)
+- **Hardware:** RP2040 (Raspberry Pi Pico)
 
 **Responsibilities:**
-- Real-time motor control
-- Sensor I/O
-- Deterministic timing
-- “Reflex”-level behaviors
+- Deterministic real-time control
+- Safety enforcement (SAFE-by-default, silence=stop)
+- Hardware abstraction
+- Protocol ingestion, framing, and validation
 
 ---
 
-### 2.2 Architectural Philosophy
+## 4. Software & Tooling Status
 
-- Python handles **thinking**
-- C / C++ handles **reflexes**
-- No hard coupling between logic and hardware implementation
-- Motion subsystem is abstracted from cognition
-
----
-
-## 3. Mechanical Baseline
-
-- Platform derived from **Scout32 ESP32 rover** (Thingiverse)
-- Six-wheel configuration
-- Rocker-bogie / Mars-style suspension intent
-- Final scale constrained by **6.5″ hoverboard hub motors**
-
-**Status:**
-- Mechanical design is mutable
-- Mechanical design is **not yet canonical**
+- Git repository initialized and in active use
+- Secure SSH access verified
+- Pico SDK installed and functional
+- Deterministic Spine firmware build and flash process verified
+- Spine-side protocol stack implemented and integrated
+- Brain-side serial tooling available for development and diagnostics
 
 ---
 
-## 4. Power Status
+## 5. What Is Explicitly *Not* Decided Yet
 
-- **Final target:** ~10S Li-ion or LiPo
+The following items remain intentionally open:
 
-### Current State
-- Power integrity issues observed
-- Raspberry Pi reports throttling  
-  (`vcgencmd get_throttled → 0x50005`)
-- Power subsystem is currently the **primary blocker**
-
-**Not yet committed:**
 - Final power architecture
-- Rail topology
-- Protection strategy
-
----
-
-## 5. Software & Tooling Status
-
-### 5.1 GitOps
-
-- Git repository initialized
-- Remote hosted on GitHub
-- ED25519 SSH keys generated and verified
-- Secure push/pull operational
-
-> The repository is considered the **“soul” of the project**.
-
----
-
-### 5.2 Development Environment
-
-- VS Code integrated with Raspberry Pi
-- ARM toolchain installed
-- CMake installed
-- Pico SDK **not yet fully downloaded / built**
-
----
-
-### 5.3 Access & Identity
-
-- Headless operation confirmed
-- SSH access functional
-- Hostname established: `titan.local`
-- User account established and verified
-
----
-
-## 6. What Is Already Decided (Binding)
-
-The following are **binding** decisions:
-
-- Brain–Spine architectural split
-- Distributed system approach
-- Git-centric workflow
-- Readable, heavily commented, “tasteful” code
-- Metric units only
-- Modular system philosophy
-- CAN bus planned as long-term embedded backbone
-
----
-
-## 7. What Is Explicitly *Not* Decided Yet
-
-The following items are **intentionally open** and must not be assumed:
-
-- Final power distribution design
-- Final motor controller selection
-- CAN bus physical-layer implementation details
+- Motor controller selection
+- CAN physical-layer details
 - Sensor suite composition
-- Autonomy level and behaviors
-- Redundancy depth and strategy
+- Autonomy behaviors
+- Message dispatch semantics beyond validation
 
-> These are open by design. Silent assumptions are forbidden.
-
----
-
-## 8. Immediate Blockers
-
-- Unclean power delivery to Raspberry Pi
-- Pico SDK setup incomplete
-- No compiled firmware artifact yet (`.uf2`)
+Silent assumptions are forbidden.
 
 ---
 
-## 9. Next Actions (Near-Term)
+## 6. Immediate Focus (Stage 2)
 
-Ordered by priority:
+The immediate focus is to:
 
-1. Resolve power integrity issues  
-   *(target: `vcgencmd get_throttled → 0x0`)*
-2. Complete Pico SDK installation
-3. Build first firmware artifact (`scout_spine.uf2`)
-4. Establish minimal Brain ↔ Spine communication (even stubbed)
-5. Log first formal decision in the Decision Log
+1. Wire a transport adapter (USB serial initially) into the Spine protocol framer
+2. Introduce a minimal packet dispatcher stub (no semantics beyond routing)
+3. Implement the Spine state machine (INIT / SAFE / ENABLED / FAULT)
+4. Enforce and verify safety behavior via fault-injection tests
 
----
-
-## 10. Open Questions
-
-These guide future work but are **not constraints** yet:
-
-- What minimum Brain ↔ Spine interface contract is required?
-- What voltage domains will exist in v1 power architecture?
-- What guarantees are required from the motion layer?
-- How will modules identify themselves over the bus?
+No motion, autonomy, or feature expansion is permitted until these are complete.
 
 ---
 
-## 11. Success Criteria (Current Phase)
+## 7. Chronological Record
 
-Success for this phase is defined as:
+For a detailed timeline of work completed and rationale, see:
 
-- Clean, repeatable builds
-- Deterministic MCU firmware flashing
-- Stable SBC operation under load
-- Clear separation of responsibilities
-- Incremental progress without architectural debt
-
----
-
-## 12. Glossary
-
-- **Titan:** SBC “Brain” node (Raspberry Pi)
-- **Scout:** MCU “Spine” node (RP2040)
-- **Brain–Spine:** Architecture separating cognition from reflexes
-- **GitOps:** Git-driven development and deployment workflow
-
----
-
-## 13. Project Naming & Path
-
-- **Scout** refers to the Scout32 ESP32 rover from Thingiverse  
-  (initial chassis and starting point)
-- **Titan** refers to the final, evolved rover:
-  - Six-wheeled
-  - Brushless
-  - Advanced
-  - Autonomous (explicitly gated)
-
-**Scout → Titan** is the journey.
-
-**Project name:** `s2trover`
+- `PROJECT_HISTORY.md`
 
 ---
 

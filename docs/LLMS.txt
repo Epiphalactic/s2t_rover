@@ -1,0 +1,338 @@
+LLMS.TXT — S2T (SCOUT TO TITAN) PROJECT
+
+Project: S2T (Scout to Titan)
+Repository: Scout32 Distributed Research Rover
+Authority: Project Constitution
+
+Purpose:
+This file defines how Large Language Models (LLMs) may be used on this project.
+It establishes scope, authority limits, required documents, and output discipline.
+Any LLM interaction that violates this file is considered non-compliant.
+
+
+RELATIONSHIP TO PROJECT CONSTITUTION
+
+This file does not define project truth.
+It defines how a Large Language Model must interpret and operate within
+project truth as defined by the Project Constitution.
+
+If any instruction in this file conflicts with the Constitution
+or other canonical documents, the Constitution takes precedence.
+
+LLMs must resolve conflicts in the following order:
+1. Project Constitution
+2. Context Pack (current state)
+3. Active Specifications and Interfaces
+4. Lexicon and Naming Conventions
+5. Coding Standards
+6. Decision Log (historical reference only)
+7. Chat instructions
+
+If a conflict cannot be resolved deterministically, without inference which violates the scope of the constitution or other project files,
+the LLM must stop and report the conflict.
+
+
+1. PROJECT IDENTITY (MANDATORY CONTEXT)
+
+S2T means “Scout to Titan.”
+It is the project name and the development journey:
+the progression from the initial Scout platform to the final Titan rover.
+
+LLMs must not reinterpret, rename, or reframe this identity.
+
+
+2. AUTHORITY MODEL (NON-NEGOTIABLE)
+
+- Project files are authoritative.
+- Chats are ephemeral.
+- LLM memory is untrusted and irrelevant.
+- Nothing is real unless written into canonical documents.
+
+LLMs have NO authority to:
+- Make binding decisions
+- Redefine architecture
+- Introduce invariants
+- Assume missing context
+
+LLMs are reasoning tools only.
+
+
+3. REQUIRED CANONICAL DOCUMENTS
+
+When working on this project, the following documents override all chat assumptions:
+
+- 00_PROJECT_CONSTITUTION.md
+- 01_CONTEXT_PACK.md
+- 02_DECISION_LOG.md
+- 04_SPECS_AND_INTERFACES.md
+- 08_NAMING_CONVENTIONS.md
+- 10_CODING_STANDARDS.md
+- 11_LEXICON.md
+- BRAIN_SPINE_MESSAGE_CONTRACT.md (when applicable)
+
+If output conflicts with these documents, the output is incorrect.
+
+
+4. SYSTEM SUMMARY (FOR LLM ORIENTATION ONLY)
+
+Brain:
+- Linux-class orchestrator
+- No hardware authority
+- May request actions only
+
+Spine:
+- MCU-class real-time controller
+- Final authority over motion and actuation
+- Enforces safety locally
+
+Mandatory invariant:
+Silence equals stop.
+Setpoints never imply permission.
+
+
+5. ROLE SCOPING (REQUIRED PER SESSION)
+
+Each LLM session MUST be explicitly scoped by the user.
+
+The scope will define:
+- The role the LLM is acting as
+- The subsystem or files it may touch
+- What is read-only
+- What must not be refactored or renamed
+
+If scope is unclear, the LLM MUST stop and ask for clarification.
+
+
+6. NAMING AND TERMINOLOGY RULES
+
+LLMs MUST follow:
+
+- 08_NAMING_CONVENTIONS.md
+- Narrative-term misuse appendix
+- 11_LEXICON.md
+
+Narrative terms (S2T, Scout, Titan) MUST NOT be used in code identifiers
+to imply authority or behavior.
+
+Technical role names (brain, spine, motion, safety, proto) MUST be used instead.
+
+Naming violations are correctness errors.
+
+
+7. CODING QUALITY REQUIREMENTS
+
+LLMs must write code that adheres to:
+
+- Linux-kernel-level clarity
+- Explicit invariants
+- Deterministic safety behavior
+- Explicit units
+- Named constants
+- Obvious ownership
+
+Cleverness, abstraction for its own sake,
+and “best effort” safety logic are prohibited.
+
+
+8. OUTPUT FORMAT REQUIREMENTS
+
+Unless explicitly told otherwise, LLMs MUST structure responses as:
+
+1. Understanding of the task
+2. Assumptions
+3. Proposed approach
+4. Safety and invariant analysis
+5. Code or artifacts (if requested)
+6. What was NOT done and why
+7. Open risks or questions
+
+Safety analysis is mandatory where applicable.
+
+
+9. UPDATE AND MEMORY RULES
+
+LLMs must respect:
+
+- 07_UPDATE_AND_MEMORY_RULES.md
+- 06_RULES_AND_PROCESS_LOG.md
+
+If new information would:
+- constrain design
+- affect safety
+- change interfaces
+- alter current state
+
+the LLM must explicitly say:
+“This must be written to canon” and identify the target document.
+
+LLMs must not silently assume persistence.
+
+
+10. FAILURE HANDLING
+
+If requirements conflict:
+- Stop and report the conflict.
+
+If something seems unsafe:
+- Refuse and explain.
+
+If information is missing:
+- Ask a minimal clarification question.
+
+Correctness and safety override task completion.
+
+
+11. PROTOCOL STACK — EXISTING AND AUTHORITATIVE
+
+The Brain ↔ Spine protocol stack already exists and is implemented on Spine.
+
+LLMs MUST NOT:
+- Reimplement packet parsing
+- Invent alternate CRC algorithms
+- Bypass the framer
+- Introduce parallel validation logic
+
+The following files are authoritative for protocol handling:
+
+- proto_constants.h        — Wire format constants and layout
+- proto_crc.h / .cpp       — CRC-16 and CRC-32 implementations (per contract v0.2)
+- proto_header.h / .cpp    — Header parsing and validation
+- proto_packet.h / .cpp   — Full packet validation
+- proto_framer.h / .cpp   — Stream framing and resynchronization
+
+All protocol behavior MUST align with:
+BRAIN_SPINE_MESSAGE_CONTRACT.md v0.2
+
+Any proposed change to protocol behavior requires:
+- A protocol version change, and
+- An explicit Decision Log entry
+
+
+12. ACCEPTANCE
+
+By responding to tasks in this repository,
+an LLM is agreeing to operate under these rules.
+
+Non-compliant output is not usable.
+
+
+DRIFT PREVENTION AND CONTEXT STABILITY
+
+Purpose:
+This section exists to prevent gradual semantic, architectural,
+and behavioral drift caused by incremental LLM interactions.
+
+Drift is defined as:
+- Subtle re-interpretation of terms
+- Gradual weakening of invariants
+- Silent refactors or renames
+- Accumulation of unstated assumptions
+- Treating previous LLM output as authoritative
+
+
+1. NO ACCRETION OF ASSUMPTIONS
+
+LLMs MUST NOT accumulate assumptions across turns.
+
+Each response must be grounded only in:
+- Canonical documents
+- Explicit instructions in the current prompt
+
+Previous LLM responses are NOT authoritative,
+even if they appear consistent.
+
+
+2. NO REINTERPRETATION OF TERMS
+
+Terms defined in the Lexicon have fixed meanings.
+
+LLMs MUST NOT:
+- Reword definitions
+- Introduce near-synonyms
+- Expand scope of existing terms
+- Collapse distinct terms into one
+
+If a term seems insufficient,
+the LLM must propose a new term explicitly,
+not mutate an existing one.
+
+
+3. NO SILENT CHANGES
+
+LLMs MUST NOT silently:
+- Refactor structure
+- Rename identifiers
+- Change control flow
+- Alter safety behavior
+- Shift responsibility between components
+
+Any such change must be:
+- Explicitly called out
+- Justified
+- Approved by the user
+
+
+4. NO IMPLIED AUTHORITY
+
+LLMs MUST NOT:
+- Make binding decisions
+- Declare something “decided”
+- Treat recommendations as adopted
+- Update canon implicitly
+
+Only the user may promote information into canonical documents.
+
+
+5. REQUIRED STABILITY CHECK
+
+Before producing output, the LLM must internally verify:
+
+- Does this reinterpret any existing term?
+- Does this weaken or bypass an invariant?
+- Does this shift authority or responsibility?
+- Does this assume undocumented behavior?
+- Does this rely on previous chat output as fact?
+
+If any answer is yes,
+the LLM must stop and surface the concern explicitly.
+
+
+6. DRIFT REPORTING
+
+If the LLM detects:
+- Conflicting canon
+- Ambiguous terminology
+- Repeated clarification on the same point
+- Pressure to “just make it work”
+
+It must state:
+“Potential drift detected”
+and explain what is drifting and why.
+
+
+7. CANON UPDATE TRIGGER
+
+If resolving a task would require:
+- Changing definitions
+- Adding invariants
+- Adjusting interfaces
+- Updating safety assumptions
+- Clarifying long-lived behavior
+
+The LLM must explicitly say:
+“This requires a canonical update”
+and name the target document.
+
+
+8. FAILURE MODE
+
+If drift cannot be prevented with the available information,
+the LLM must refuse to proceed.
+
+Silence, guessing, or improvisation is not acceptable.
+
+
+END OF DRIFT PREVENTION SECTION
+
+
+END OF LLMS.TXT

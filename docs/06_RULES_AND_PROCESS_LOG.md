@@ -1,13 +1,28 @@
 # Rules & Process Log v0.1
 
+> **PROCESS CLARIFICATION**
+>
+> This document defines **how work is conducted and reconciled**, not what the system is.
+> Process rules exist to prevent drift, ambiguity, and unsafe shortcuts.
+>
+> This document does NOT override:
+> - The Project Constitution (identity-level rules)
+> - The Context Pack (current state)
+> - Specifications & Interfaces (technical truth)
+>
+> If a process rule conflicts with canonical documents, the canonical documents prevail.
+
+
+
+
 **Project:** Scout32 Distributed Research Rover  
-**Status:** Canonical  
+**Status:** Process-Canonical (Non-Authoritative)
 **Last Updated:** 2025-01-XX  
 **Applies To:** All chats, models, tools, and contributors (human or AI)
 
 ---
 
-## 1. Purpose of This Log
+## 01. Purpose of This Log
 
 This document defines **how work is done**, **how information is trusted**, and **how drift is prevented**.
 
@@ -21,7 +36,7 @@ It exists to:
 
 ---
 
-## 2. Authority Model (Non-Negotiable)
+## 02. Authority Model (Non-Negotiable)
 
 - Files are authoritative
 - Chats are ephemeral
@@ -34,7 +49,7 @@ Specifically:
 
 ---
 
-## 3. Canonical Documents & Their Roles
+## 03. Canonical Documents & Their Roles
 
 | File                         | Purpose                                      |
 |------------------------------|----------------------------------------------|
@@ -50,7 +65,7 @@ Specifically:
 
 ---
 
-## 4. Model Roles (Explicit Separation)
+## 04. Model Roles (Explicit Separation)
 
 ### 4.1 ChatGPT Project (Hub)
 
@@ -91,7 +106,7 @@ Rules:
 
 ---
 
-## 5. Memory Rules (Critical)
+## 05. Memory Rules (Critical)
 
 - No AI model is trusted to remember anything
 - Long-term memory exists **only** in documents
@@ -101,28 +116,65 @@ Rules:
 
 ---
 
-## 6. Update Protocol (How Information Enters Canon)
+## 06. Update Protocol (How Information Enters Canon)
 
-All **non-hub contributions** must end with the following structured block:
+### Required Update Block (for non-hub contributions)
 
-```markdown
-=== AUTOSAVE UPDATE ===
-Source:
-Date:
-Scope:
+All non-hub contributions must include:
 
-Verified facts:
-- …
+- Source
+- Date
+- Scope
+- Verified facts
+- Analysis performed
+- Proposed changes
+- Conflicts / ambiguities
+- Confidence level
 
-Analysis performed:
-- …
 
-Proposed changes:
-- …
+## 07. Canonical Reconciliation Rule
 
-Conflicts / ambiguities:
-- …
+When discrepancies are discovered between:
+- project documentation
+- code
+- observed system behavior
+- or human memory
 
-Confidence level:
-- …
-=======================
+The following reconciliation order SHALL be used:
+
+1. **Observed system behavior**
+2. **Current code and build artifacts**
+3. **Context Pack (authoritative snapshot)**
+4. **Decision Log (historical rationale)**
+5. **Project History (narrative record)**
+6. **Chats and external notes**
+
+Corrections MUST be made explicitly and traceably.
+Silent fixes or retroactive rewrites are forbidden.
+
+
+## 08. Session Close-Out Checklist (Recommended)
+
+At the end of a work session, answer the following:
+
+- Did observed behavior differ from documented state?
+- Did the Context Pack need updating?
+- Did any backlog item change status?
+- Was a binding decision made?
+- Was any assumption corrected?
+
+If the answer to any is “yes”, perform reconciliation before starting new work.
+
+##  09. Project History Handling
+
+The project maintains a single chronological history document:
+
+- `PROJECT_HISTORY.md`
+
+This document is **non-canonical** and exists to preserve narrative context,
+learning, and rationale.
+
+Rules:
+- No other document shall duplicate historical timelines or event summaries
+- Canonical documents may reference the Project History but must not derive authority from it
+- In case of discrepancy, canonical documents prevail over Project History

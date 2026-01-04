@@ -1,5 +1,13 @@
 # Risk Register v0.1
 
+> **NOTE**
+>
+> This Risk Register tracks **potential and realized risks** to the project.
+> A risk being marked *Mitigated* does NOT imply it can never reoccur —
+> only that sufficient controls or evidence currently exist.
+>
+> If project architecture changes, risks MUST be re-evaluated.
+
 **Project:** Scout32 Distributed Research Rover  
 **Status:** Active  
 **Last Updated:** 2025-01-XX  
@@ -36,23 +44,25 @@ If a risk materializes, it must be:
 
 ## 1. Power & Electrical Risks
 
-### R-001 — Unstable Power Delivery to SBC
-- **Likelihood:** High  
+### R-001 — Unstable SBC Power Delivery
+- **Likelihood:** Medium (historical)  
 - **Impact:** High  
-- **Priority:** Critical  
+- **Priority:** High  
+- **Status:** Mitigated  
 
 **Description:**  
-Insufficient or noisy power delivery causes SBC throttling, instability, or data corruption.
+Unstable power delivery to the SBC may cause throttling or undefined behavior.
 
-**Evidence:**  
-Observed throttling (`vcgencmd get_throttled → 0x50005`).
+**Mitigation:**
+- Power source replaced and verified
+- Raspberry Pi operates under load without throttling
 
-**Mitigation Strategy:**
-- Improve power source and regulation
-- Validate under load
-- Treat clean power as a gating requirement
+**Evidence:**
+- `vcgencmd get_throttled` reports no throttling
+- Stable operation observed during extended runtime
 
-**Status:** Open (Active Blocker)
+**Residual Risk:**
+- Low (re-evaluate if power architecture changes)
 
 ---
 
@@ -60,6 +70,7 @@ Observed throttling (`vcgencmd get_throttled → 0x50005`).
 - **Likelihood:** Medium  
 - **Impact:** High  
 - **Priority:** High  
+- **Status:** Open (Design Phase)
 
 **Description:**  
 10S Li-ion / LiPo introduces risks of short-circuit, overcurrent, and thermal events.
@@ -69,8 +80,6 @@ Observed throttling (`vcgencmd get_throttled → 0x50005`).
 - Clear voltage-domain separation
 - Fusing and protection before final integration
 
-**Status:** Open (Design Phase)
-
 ---
 
 ## 2. Motion & Actuation Risks
@@ -79,6 +88,7 @@ Observed throttling (`vcgencmd get_throttled → 0x50005`).
 - **Likelihood:** Medium  
 - **Impact:** High  
 - **Priority:** High  
+- **Status:** Open (Exploratory)
 
 **Description:**  
 Hoverboard hub motors require complex control and may impose architectural constraints.
@@ -88,14 +98,13 @@ Hoverboard hub motors require complex control and may impose architectural const
 - Allow controller replacement without system-wide impact
 - Prototype before committing
 
-**Status:** Open (Exploratory)
-
 ---
 
 ### R-011 — Mechanical Load & Thermal Stress
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Weight, terrain, and duty cycle may exceed assumptions, stressing motors and structure.
@@ -105,8 +114,6 @@ Weight, terrain, and duty cycle may exceed assumptions, stressing motors and str
 - Instrumentation and monitoring
 - Iterative mechanical refinement
 
-**Status:** Open
-
 ---
 
 ## 3. Architecture & Software Risks
@@ -115,16 +122,15 @@ Weight, terrain, and duty cycle may exceed assumptions, stressing motors and str
 - **Likelihood:** Medium  
 - **Impact:** High  
 - **Priority:** High  
+- **Status:** Open
 
 **Description:**  
 Gradual leakage of responsibilities causes spaghetti architecture and tight coupling.
 
 **Mitigation Strategy:**
 - Explicit interface contracts
-- Enforce responsibility table
+- Enforce responsibility boundaries
 - Reject convenience-driven shortcuts
-
-**Status:** Open
 
 ---
 
@@ -132,6 +138,7 @@ Gradual leakage of responsibilities causes spaghetti architecture and tight coup
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Implicit assumptions (timing, units, ranges) cause subtle, hard-to-diagnose bugs.
@@ -141,14 +148,13 @@ Implicit assumptions (timing, units, ranges) cause subtle, hard-to-diagnose bugs
 - Versioned interfaces
 - Defensive parsing
 
-**Status:** Open
-
 ---
 
 ### R-022 — Premature Optimization
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Early optimization of performance or architecture introduces fragility.
@@ -156,9 +162,7 @@ Early optimization of performance or architecture introduces fragility.
 **Mitigation Strategy:**
 - Prioritize clarity and correctness
 - Defer optimization
-- Label experiments clearly
-
-**Status:** Open
+- Label experiments explicitly
 
 ---
 
@@ -168,6 +172,7 @@ Early optimization of performance or architecture introduces fragility.
 - **Likelihood:** Low  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Prematurely locking CAN details limits architectural flexibility.
@@ -176,24 +181,21 @@ Prematurely locking CAN details limits architectural flexibility.
 - Separate message semantics from transport
 - Delay physical-layer commitment
 
-**Status:** Open
-
 ---
 
 ### R-031 — Debugging Complexity in Distributed Systems
 - **Likelihood:** High  
 - **Impact:** Medium  
 - **Priority:** High  
+- **Status:** Open
 
 **Description:**  
 Distributed nodes complicate fault isolation and debugging.
 
 **Mitigation Strategy:**
-- Strong logging
+- Strong observability
 - Clear ownership of faults
 - Simple initial topologies
-
-**Status:** Open
 
 ---
 
@@ -203,6 +205,7 @@ Distributed nodes complicate fault isolation and debugging.
 - **Likelihood:** Low  
 - **Impact:** High  
 - **Priority:** High  
+- **Status:** Open (Gated by Design)
 
 **Description:**  
 Software error causes motion without explicit human intent.
@@ -212,14 +215,13 @@ Software error causes motion without explicit human intent.
 - Explicit enable semantics
 - Local Spine authority for disable
 
-**Status:** Open (Gated by Design)
-
 ---
 
 ### R-041 — Overconfidence in Experimental Autonomy
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Experimental autonomy may be trusted beyond its maturity.
@@ -229,8 +231,6 @@ Experimental autonomy may be trusted beyond its maturity.
 - Explicit labeling
 - Human-in-the-loop by default
 
-**Status:** Open
-
 ---
 
 ## 6. Process & Scope Risks
@@ -239,6 +239,7 @@ Experimental autonomy may be trusted beyond its maturity.
 - **Likelihood:** High  
 - **Impact:** Medium  
 - **Priority:** High  
+- **Status:** Ongoing
 
 **Description:**  
 Interesting ideas dilute focus and destabilize architecture.
@@ -248,14 +249,13 @@ Interesting ideas dilute focus and destabilize architecture.
 - Constitution enforcement
 - Regular scope review
 
-**Status:** Ongoing
-
 ---
 
 ### R-051 — Documentation Drift
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Reality diverges from written documents.
@@ -263,8 +263,6 @@ Reality diverges from written documents.
 **Mitigation Strategy:**
 - Treat documents as authority
 - Update docs when behavior changes
-
-**Status:** Open
 
 ---
 
@@ -274,6 +272,7 @@ Reality diverges from written documents.
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Project complexity overwhelms learning intent.
@@ -283,14 +282,13 @@ Project complexity overwhelms learning intent.
 - Celebrate subsystem wins
 - Avoid constant large refactors
 
-**Status:** Open
-
 ---
 
 ### R-061 — Loss of Teaching Clarity
 - **Likelihood:** Medium  
 - **Impact:** Medium  
 - **Priority:** Medium  
+- **Status:** Open
 
 **Description:**  
 Code and architecture become hard to reason about for humans.
@@ -299,8 +297,6 @@ Code and architecture become hard to reason about for humans.
 - Enforce the “taste” rule
 - Heavy commentary
 - Prefer boring solutions
-
-**Status:** Open
 
 ---
 
