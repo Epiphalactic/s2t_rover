@@ -1,115 +1,112 @@
-# Scout32 Distributed Research Rover (S2T — Scout to Titan)
+# S2T Rover (Scout32 → Titan)
 
-This repository contains Scout32, a distributed research rover project
-developed under the S2T (Scout to Titan) program.
+This repository contains **Scout32**, a distributed research rover project
+focused on learning, architectural correctness, and long-term experimentation.
 
-S2T represents both the project identity and the long-term development arc:
-the deliberate evolution from early Scout platforms toward the final Titan
-rover architecture.
+The project operates under the **S2T (Scout to Titan)** identity, representing
+the deliberate progression from early *Scout* platforms toward the final
+*Titan* rover architecture.
 
-This is a learning and research system, not a product.
-
-----------------------------------------------------------------
-
-PROJECT PURPOSE
-
-Scout32 exists to build and evolve a research-grade, modular rover platform
-with a strong emphasis on:
-
-- Architecture correctness
-- Safety-first design
-- Human understanding and teachability
-- Long-term experimentation and iteration
-
-Domains explicitly in scope include:
-
-- Robotics
-- Distributed systems
-- Electronics
-- Embedded software
-- Autonomy (explicitly gated and experimental)
-
-The platform is intended for long-term educational use by the author and
-their child, and is developed with clarity and maintainability as
-first-class requirements.
+This is a **learning and research platform**, not a product.
 
 ----------------------------------------------------------------
 
-CORE ARCHITECTURE
+## Overview
 
-The system is built around a strict Brain / Spine separation.
+Scout32 exists to explore and teach:
 
-BRAIN (SBC)
-- Linux-class single-board computer
-- High-level orchestration and tooling
-- Human interface (SSH, diagnostics, logging)
-- Build, deployment, and future planning logic
-- No direct hardware authority
+- Distributed robotic system design
+- Clean separation of responsibilities
+- Safety-first architecture
+- Maintainable, human-readable embedded systems
 
-SPINE (MCU)
-- Real-time microcontroller
-- Deterministic execution
-- Safety enforcement and motion authority
-- Hardware abstraction and module control
-- Final authority over actuation
-
-This separation is non-negotiable and enforced throughout the project.
+The project prioritizes **clarity, correctness, and understanding**
+over features, performance, or speed of development.
 
 ----------------------------------------------------------------
 
-CURRENT PROJECT STATE
+## System Architecture
 
-- Stage: Stage 2 — Infrastructure Hardening
-- Motion: Not implemented; system is SAFE-by-default
-- Power: Stable under load
+The system is built around a strict **Brain / Spine** separation.
+
+This separation is mandatory and enforced throughout the project.
+
+### Brain (SBC)
+
+A Linux-class single-board computer responsible for:
+
+- High-level orchestration and coordination
+- Tooling, logging, deployment, and diagnostics
+- Human interface (SSH, development workflow)
+- Generating requests and intent only
+
+The Brain has **no direct hardware or actuation authority**.
+
+### Spine (MCU)
+
+One or more microcontrollers responsible for:
+
+- Deterministic, real-time execution
+- Ingesting and validating Brain requests via a strict protocol
+- Enforcing safety invariants locally
+- Owning all real-time interfaces to hardware
+- Holding final authority over whether actuation is permitted
+
+The Spine does **not** plan or make mission-level decisions.
+It executes validated requests only within explicitly permitted safety bounds
+and defaults to SAFE behavior on silence, fault, or ambiguity.
+
+----------------------------------------------------------------
+
+## Safety and Design Philosophy
+
+- This project is **not safety-certified**
+- Autonomy is **explicitly gated and experimental**
+- Motion and actuation are disabled by default
+- Silence equals stop
+- Setpoints never imply permission
+- Safety logic lives locally on the Spine
+
+Clean interfaces and boring, understandable code are preferred over cleverness.
+
+If a decision matters, **it must be written down**.
+
+----------------------------------------------------------------
+
+## Current Project Status
+
+- Current stage: **Stage 2 — Infrastructure Hardening**
+- Motion control: **Not implemented**
 - Spine firmware: Builds, flashes, and boots reliably
-- Brain ↔ Spine protocol:
-  - Normative contract adopted (v0.2)
-  - Spine-side protocol ingestion stack implemented and frozen
-  - CRC-verified packet parsing, validation, and stream framing complete
-- Transport: Physical transport wiring (USB / CAN) pending
-- Primary focus:
-  Wiring transport into the validated protocol stack and enforcing behavior
-  through the Spine state machine
+- Brain ↔ Spine protocol: **Normative and adopted (v0.2)**
+- Spine-side protocol ingestion stack implemented and frozen
+- Transport wiring (USB / CAN): Pending integration
 
-No autonomy, motion control, or feature expansion is permitted until
+No motion, autonomy, or feature expansion is permitted until
 Stage 2 infrastructure milestones are complete.
 
 ----------------------------------------------------------------
 
-SAFETY AND PHILOSOPHY
+## Documentation and Authority
 
-- This project is not safety-certified
-- Autonomy is explicitly gated and experimental
-- Silence equals stop
-- Setpoints never imply permission
-- Safety logic lives locally on the Spine
-- Clean interfaces and boring code are preferred over cleverness
-
-If a decision matters, it must be written down.
-
-----------------------------------------------------------------
-
-DOCUMENTATION AND AUTHORITY
-
-All authoritative truth lives in the project documentation under:
+All authoritative project documentation lives in:
 
 docs/
 
-Key canonical documents include:
+Key documents include:
 
-- 00_PROJECT_CONSTITUTION.md
-- 01_CONTEXT_PACK.md
-- 02_DECISION_LOG.md
-- 04_SPECS_AND_INTERFACES.md
-- BRAIN_SPINE_MESSAGE_CONTRACT.md
+- Project Constitution — identity, constraints, invariants
+- Context Pack — current authoritative project state
+- Decision Log — binding architectural decisions
+- Specs and Interfaces — technical facts and interfaces
+- Brain ↔ Spine Message Contract — normative protocol specification
 
-Chats, experiments, and tooling output are non-authoritative unless
-explicitly promoted into these documents.
+Chats, experiments, and tooling output are **non-authoritative**
+unless explicitly promoted into project documents.
 
 ----------------------------------------------------------------
 
-WHAT THIS REPOSITORY IS NOT
+## What This Project Is Not
 
 - Not a commercial product
 - Not compliance- or safety-certified
@@ -121,4 +118,4 @@ Learning, correctness, and clarity take precedence over speed.
 
 ----------------------------------------------------------------
 
-END OF README
+End of README
