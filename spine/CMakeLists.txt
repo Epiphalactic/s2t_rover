@@ -13,6 +13,7 @@ pico_sdk_init()
 add_executable(scout_spine 
     main.cpp
     proto_crc.cpp
+    proto_packet.cpp
     lib/pico-ssd1306/ssd1306.c
 )
 
