@@ -1,6 +1,6 @@
 # Context Pack v0.1
 
-**Project:** Scout32 Distributed Research Rover  
+**Project:** s2t Distributed Research Rover  
 **Status:** Active  
 **Canonical Authority:** Project Constitution v0.1  
 
@@ -8,7 +8,7 @@
 
 ## 1. Objective (Current Framing)
 
-Establish a **stable, professional-grade distributed robotics platform** that:
+Establish a stable, professional-grade distributed robotics platform that:
 
 - Separates high-level cognition from real-time control
 - Supports modular growth over time
@@ -16,24 +16,25 @@ Establish a **stable, professional-grade distributed robotics platform** that:
 
 **Current phase priority:**  
 Architecture correctness, tooling, and system hygiene  
-**over** feature completeness.
+over feature completeness.
 
 ---
 
 ## 2. Current Snapshot (Authoritative State)
 
-This section represents the **current operational truth** of the project.  
-It is updated **only when the present state changes**.
+This section represents the current operational truth of the project.  
+It is updated only when the present state changes.
 
 - **Phase:** Stage 2 — Infrastructure Hardening
 - **Power:** Stable; Raspberry Pi operates without throttling under load
 - **Spine firmware:** Builds, flashes, and boots reliably; OLED operational (Spine-local display)
-- **Brain ↔ Spine protocol stack:** Implemented and building on Spine
+- **Brain ↔ Spine protocol stack:** Implemented and building on Spine and Brain
   - Wire-format constants
   - CRC-16 (header) and CRC-32 (payload) per contract v0.2
   - Header parsing and validation
   - Full packet validation
   - Stream framer with resynchronization and bounded buffering
+  - Shared Brain-side protocol interface and minimal test harness
 - **Brain ↔ Spine transport:** Not yet wired into Spine runtime (USB/CAN adapters pending)
 - **Motion:** Not implemented; Spine remains SAFE-by-default
 - **Primary blockers:** None
@@ -41,9 +42,10 @@ It is updated **only when the present state changes**.
   Wire validated byte streams into the Spine protocol framer and enforce behavior via state machine logic
 
 **Evidence:**
-- Spine protocol stack compiles and links into `scout_spine`
-- Pico SDK + CMake build produces working `.uf2`
-- Stream framer validated via clean builds and integration
+- Spine protocol stack compiles and links into scout_spine
+- Pico SDK + CMake build produces working UF2
+- Brain-side protocol components compile cleanly
+- Stream framing and validation verified via integration harness
 - Power stability verified under load
 
 ---
@@ -59,7 +61,26 @@ It is updated **only when the present state changes**.
 - High-level logic and orchestration
 - Human interface (SSH, tooling)
 - Build system and deployment
-- Future protocol packet generation and validation (Brain-side mirror)
+- Brain-side protocol framing and validation (Stage 2.2)
+
+#### Brain-side Protocol Infrastructure (Stage 2.2)
+
+The Brain implements a complete, deterministic protocol-processing pipeline that
+mirrors Spine-side transport, framing, and integrity enforcement as defined in
+BRAIN_SPINE_MESSAGE_CONTRACT.md v0.2.
+
+This infrastructure is responsible for protocol correctness only and does not
+participate in motion authority or safety enforcement.
+
+The Brain-side protocol infrastructure includes:
+
+- Byte-stream framing with resynchronization
+- Header and packet validation
+- CRC16 (header) and CRC32 (payload) enforcement
+- Deterministic rejection of malformed packets
+- A minimal harness for exercising the full pipeline without hardware
+
+The Spine remains the final authority for safety and actuation.
 
 ---
 
@@ -69,7 +90,7 @@ It is updated **only when the present state changes**.
 
 **Responsibilities:**
 - Deterministic real-time control
-- Safety enforcement (SAFE-by-default, silence=stop)
+- Safety enforcement (SAFE-by-default, silence equals stop)
 - Hardware abstraction
 - Protocol ingestion, framing, and validation
 
@@ -82,11 +103,12 @@ It is updated **only when the present state changes**.
 - Pico SDK installed and functional
 - Deterministic Spine firmware build and flash process verified
 - Spine-side protocol stack implemented and integrated
-- Brain-side serial tooling available for development and diagnostics
+- Brain-side protocol stack implemented and validated
+- Brain-side tooling available for development and diagnostics
 
 ---
 
-## 5. What Is Explicitly *Not* Decided Yet
+## 5. What Is Explicitly Not Decided Yet
 
 The following items remain intentionally open:
 
@@ -118,8 +140,8 @@ No motion, autonomy, or feature expansion is permitted until these are complete.
 
 For a detailed timeline of work completed and rationale, see:
 
-- `PROJECT_HISTORY.md`
+- PROJECT_HISTORY.md
 
 ---
 
-_End of Context Pack v0.1_
+End of Context Pack v0.1

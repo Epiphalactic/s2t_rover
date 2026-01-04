@@ -176,6 +176,20 @@ State enum (v0.1):
 Spine MUST start in INIT and transition to SAFE when ready.  
 Spine MUST NOT enter ENABLED unless it has accepted MOTION_ENABLE(enable=1) for the current session.
 
+### 7.1 Spine State Enum Numeric Values (Normative)
+
+The following numeric values are normative and SHALL be used wherever the Spine
+state is encoded or reported.
+
+| State Name | Value (uint8) | Meaning |
+|-----------:|:--------------|:--------|
+| INIT       | 0x00          | Booting / not yet ready |
+| SAFE       | 0x01          | Motion disabled, awaiting enable |
+| ENABLED    | 0x02          | Motion permission granted (subject to liveness) |
+| FAULT      | 0x03          | Fault latched; motion disabled |
+
+Values 0x04–0xFF are RESERVED for future use.
+
 ---
 
 ## 8. Message Types and Semantics (v0.1)
@@ -197,6 +211,206 @@ Defined message types:
 - S2B_ACK
 
 (Full payload definitions as previously adopted.)
+
+### 8.1 Brain → Spine Message Type IDs (Normative)
+
+The following message type IDs are normative and SHALL be used in the packet
+header `msg_type` field for Brain → Spine messages.
+
+| Message Type        | ID (uint8) | Purpose |
+|--------------------:|:-----------|:--------|
+| B2S_HELLO           | 0x10       | Session initiation / identity |
+| B2S_HEARTBEAT       | 0x11       | Liveness keepalive |
+| B2S_MOTION_ENABLE   | 0x12       | Grant or revoke motion permission |
+| B2S_MOTION_SETPOINT | 0x13       | Motion setpoint (never implies permission) |
+
+IDs 0x14–0x2F are RESERVED for future Brain → Spine messages.
+
+### 8.2 Spine → Brain Message Type IDs (Normative)
+
+The following message type IDs are normative and SHALL be used in the packet
+header `msg_type` field for Spine → Brain messages.
+
+| Message Type      | ID (uint8) | Purpose |
+|------------------:|:-----------|:--------|
+| S2B_IDENTITY      | 0x80       | Spine identity / version report |
+| S2B_HEARTBEAT     | 0x81       | Spine liveness + state |
+| S2B_STATE_REPORT  | 0x82       | Periodic detailed state report |
+| S2B_ACK           | 0x83       | Acknowledgment / rejection |
+| S2B_FAULT         | 0x84       | Fault announcement |
+
+IDs 0x85–0x9F are RESERVED for future Spine → Brain messages.
+
+### 8.3 Payload Layouts (v0.2 — Normative)
+
+This section defines the exact byte-level payload layouts for all v0.2 message types
+listed in Section 8. Payload layouts are REQUIRED for compliance.
+
+#### 8.3.1 Common Rules (Normative)
+
+- All multi-byte fields are little-endian (per Section 5.1).
+- All payloads are packed byte sequences with no padding.
+- `payload_len` MUST exactly match the message’s required payload length.
+  - If `payload_len` does not match, the receiver MUST reject the message and MUST NOT
+    treat it as keepalive traffic.
+- Reserved fields:
+  - Senders MUST set all RESERVED bytes to 0.
+  - Receivers MUST ignore RESERVED bytes.
+- Floating-point:
+  - Any `f32` field SHALL be IEEE-754 binary32, little-endian.
+  - NaN or ±Inf values MUST be rejected.
+
+#### 8.3.2 Session Validity Primitive (Normative)
+
+To support `SESSION_INVALID` fault code (Table 11), this contract defines a minimal
+session identifier carried in payloads:
+
+- `session_id` is a `u32` selected by the Brain.
+- `session_id = 0` is RESERVED and MUST NOT be used to start a session.
+- The Spine maintains `current_session_id`:
+  - Initial value on boot: `0`.
+  - On accepting a valid `B2S_HELLO(session_id != 0)`, Spine sets `current_session_id`
+    to that value and immediately transitions to SAFE (motion disabled).
+  - Any Brain→Spine message that includes a `session_id` and does not match
+    `current_session_id` MUST be rejected (and MAY raise fault `SESSION_INVALID`).
+- Session requirements:
+  - `B2S_HEARTBEAT`, `B2S_MOTION_ENABLE`, and `B2S_MOTION_SETPOINT` REQUIRE an active
+    session (`current_session_id != 0`).
+  - If no session is active, these messages MUST be rejected and MUST NOT count as keepalive.
+
+This definition is additive and does not grant authority. It only enables deterministic
+rejection of stale/foreign senders.
+
+#### 8.3.3 Brain → Spine Payloads (Normative)
+
+##### B2S_HELLO (msg_type 0x10)
+Purpose: initiate/replace session (does not grant motion authority).
+
+Required payload length: 4 bytes
+
+Field        | Type | Offset | Notes
+------------|------|--------|---------------------------
+session_id   | u32  | 0      | MUST be nonzero
+
+Spine behavior constraints:
+- On accepting a valid HELLO, Spine MUST disable motion and enter SAFE.
+
+##### B2S_HEARTBEAT (msg_type 0x11)
+Purpose: keepalive traffic (per Section 3.2).
+
+Required payload length: 8 bytes
+
+Field           | Type | Offset | Notes
+---------------|------|--------|---------------------------
+session_id      | u32  | 0      | MUST equal current_session_id
+brain_uptime_ms | u32  | 4      | Monotonic since Brain boot; informational
+
+##### B2S_MOTION_ENABLE (msg_type 0x12)
+Purpose: request motion permission grant/revoke.
+
+Required payload length: 8 bytes
+
+Field        | Type | Offset | Notes
+------------|------|--------|---------------------------
+session_id   | u32  | 0      | MUST equal current_session_id
+enable       | u8   | 4      | 0 = disable, 1 = enable
+reserved     | u8[3]| 5      | MUST be 0
+
+Validity:
+- `enable` values other than 0/1 MUST be rejected.
+
+##### B2S_MOTION_SETPOINT (msg_type 0x13)
+Purpose: setpoint for one axis (never implies permission).
+
+Required payload length: 12 bytes
+
+Field        | Type | Offset | Notes
+------------|------|--------|---------------------------
+session_id   | u32  | 0      | MUST equal current_session_id
+axis_id      | u8   | 4      | MUST exist in Axis Table (Section 10)
+reserved0    | u8   | 5      | MUST be 0
+value        | f32  | 6      | Units per Axis Table; must be finite
+reserved1    | u16  | 10     | MUST be 0
+
+Range:
+- `value` MUST be within [min,max] for the axis (Section 10) or be refused per Section 3.4.
+
+#### 8.3.4 Spine → Brain Payloads (Normative)
+
+##### S2B_IDENTITY (msg_type 0x80)
+Purpose: identity + session echo for observability.
+
+Required payload length: 12 bytes
+
+Field           | Type | Offset | Notes
+---------------|------|--------|---------------------------
+spine_boot_id   | u32  | 0      | Random or unique per Spine boot; stable until reset
+spine_uptime_ms | u32  | 4      | Monotonic since Spine boot; informational
+session_id      | u32  | 8      | Current session_id (0 if none)
+
+##### S2B_HEARTBEAT (msg_type 0x81)
+Purpose: Spine liveness + state.
+
+Required payload length: 12 bytes
+
+Field           | Type | Offset | Notes
+---------------|------|--------|---------------------------
+session_id      | u32  | 0      | Current session_id (0 if none)
+spine_uptime_ms | u32  | 4      | Monotonic since Spine boot; informational
+spine_state     | u8   | 8      | Values per Section 7.1
+motion_permitted| u8   | 9      | 0 = no, 1 = yes (logical permission only)
+reserved        | u16  | 10     | MUST be 0
+
+##### S2B_STATE_REPORT (msg_type 0x82)
+Purpose: periodic state snapshot (lightweight in v0.2).
+
+Required payload length: 12 bytes
+
+Field           | Type | Offset | Notes
+---------------|------|--------|---------------------------
+session_id      | u32  | 0      | Current session_id (0 if none)
+spine_uptime_ms | u32  | 4      | Monotonic since Spine boot; informational
+spine_state     | u8   | 8      | Values per Section 7.1
+flags           | u8   | 9      | Bit0: motion_permitted, Bit1: fault_latched; others RESERVED
+active_fault    | u16  | 10     | 0 = none, else fault_code from Section 11
+
+##### S2B_ACK (msg_type 0x83)
+Purpose: acknowledge/reject a received Brain→Spine message.
+
+Required payload length: 12 bytes
+
+Field        | Type | Offset | Notes
+------------|------|--------|---------------------------
+session_id   | u32  | 0      | Current session_id (0 if none)
+acked_type   | u8   | 4      | The msg_type being acknowledged
+result       | u8   | 5      | 0 = OK, 1 = REJECTED
+acked_seq    | u16  | 6      | The header `seq` of the acknowledged packet
+fault_code   | u16  | 8      | 0 = none, else Section 11 fault_code
+reserved     | u16  | 10     | MUST be 0
+
+##### S2B_FAULT (msg_type 0x84)
+Purpose: announce a fault condition.
+
+Required payload length: 16 bytes
+
+Field           | Type | Offset | Notes
+---------------|------|--------|---------------------------
+session_id      | u32  | 0      | Current session_id (0 if none)
+spine_uptime_ms | u32  | 4      | Monotonic since Spine boot; informational
+fault_code      | u16  | 8      | Must match Section 11 table
+severity        | u8   | 10     | 1 = WARN, 2 = ERROR, 3 = FATAL
+spine_state     | u8   | 11     | Values per Section 7.1
+disables_motion | u8   | 12     | 0 = no, 1 = yes (must match Section 11)
+reserved        | u8[3]| 13     | MUST be 0
+
+
+### Message ID Allocation Policy (Normative)
+
+- Message type IDs are uint8.
+- Brain → Spine messages SHALL use IDs in the range 0x10–0x2F.
+- Spine → Brain messages SHALL use IDs in the range 0x80–0x9F.
+- IDs outside these ranges are RESERVED.
+- IDs, once assigned, SHALL NOT be reused or repurposed.
 
 ---
 

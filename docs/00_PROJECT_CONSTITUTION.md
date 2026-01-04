@@ -1,7 +1,7 @@
 
 # Project Constitution v0.1
 
-**Project Name:** Scout32 Distributed Research Rover  
+**Project Name:** Scout s2t Distributed Research Rover  
 **Status:** Canonical  
 **Last Updated:** 2025-01-XX  
 

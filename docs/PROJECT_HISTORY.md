@@ -185,6 +185,21 @@ The following protocol components were implemented on Spine:
 
 This establishes the canonical pipeline:
 
+### 2026-01 — Stage 2.2 Complete (Brain-side Protocol Infrastructure)
+
+Completed Stage 2.2 on the Brain side.
+
+Scope of work:
+- Implemented Brain-side mirror of the Brain ↔ Spine protocol (v0.2)
+- Added wire-format constants, CRC16/CRC32, header parsing, packet validation
+- Implemented stream framer with resynchronization
+- Introduced shared Brain-side protocol interface
+- Added minimal test harness for protocol verification
+
+Notes:
+- No protocol semantics were changed
+- No motion, autonomy, or authority logic was added
+- Spine remains SAFE-by-default and sole authority
 
 ---
 

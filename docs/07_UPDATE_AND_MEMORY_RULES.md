@@ -1,6 +1,6 @@
 # Update & Memory Rules v0.1
 
-**Project:** Scout32 Distributed Research Rover  
+**Project:** S2T Distributed Research Rover  
 **Status:** Canonical  
 **Last Updated:** 2025-01-XX  
 **Authority:** Project Constitution v0.1  

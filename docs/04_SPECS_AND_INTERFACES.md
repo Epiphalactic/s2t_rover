@@ -1,6 +1,6 @@
 # Specs & Interfaces v0.1
 
-**Project:** Scout32 Distributed Research Rover  
+**Project:** S2T Distributed Research Rover  
 **Status:** Canonical (Foundational)  
 **Last Updated:** 2026-01-XX  
 **Authority:** Project Constitution v0.1  
@@ -182,6 +182,42 @@ Final authority over motion remains with the Spine and is enforced via:
 
 This separation ensures that high-level compute systems remain independent
 of physical actuation hardware until explicitly authorized by the Spine.
+### 5.4 Brain-side Protocol Stack (Stage 2.2)
+
+The Brain implements a complete, deterministic mirror of the Spine-side
+transport, framing, and integrity enforcement defined in
+BRAIN_SPINE_MESSAGE_CONTRACT.md v0.2.
+
+This implementation is responsible for protocol correctness only.
+It does not and cannot grant motion authority.
+
+#### Responsibilities
+
+The Brain-side protocol stack performs:
+
+- Byte-stream framing with resynchronization
+- Fixed header parsing and validation
+- CRC16 (header) and CRC32 (payload) verification
+- Full packet length consistency checks
+- Deterministic rejection of malformed packets
+- A minimal harness to exercise the full pipeline without hardware or transport
+
+#### Layering
+
+Byte Stream  
+→ Stream Framer  
+→ Packet Validator  
+→ Header Validator
+
+Each layer may independently reject input.
+Rejection at any layer causes the packet to be discarded.
+
+#### Authority Boundary (Binding)
+
+- Silence equals stop.
+- Setpoints never imply permission.
+- Motion authority remains Spine-owned and Spine-enforced.
+- Brain-side correctness does not relax Spine-side safety rules.
 
 ---
 

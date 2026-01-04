@@ -59,9 +59,16 @@ None. Entry retained for historical accuracy.
 **Date:** 2026-01-02
 
 **Decision:**  
-The document `BRAIN_SPINE_MESSAGE_CONTRACT.md` is formally adopted as the **normative and authoritative** Brain ↔ Spine interface specification for **Stage 2 — Infrastructure Hardening**.
+~~The document `BRAIN_SPINE_MESSAGE_CONTRACT.md` is formally adopted as the
+normative and authoritative Brain ↔ Spine interface specification for
+Stage 2 — Infrastructure Hardening.~~
 
-This adoption freezes the contract at **v0.1** with no remaining undefined fields.
+~~This adoption freezes the contract at v0.1 with no remaining undefined fields.~~
+
+*Corrected: This decision was superseded by adoption of
+BRAIN_SPINE_MESSAGE_CONTRACT.md v0.2, which replaces v0.1 as the
+authoritative contract.*
+
 
 **Scope:**  
 This decision makes the following binding for Stage 2:
@@ -118,7 +125,7 @@ The Brain ↔ Spine protocol is bumped from v0.1 to v0.2 to explicitly define CR
 Only when introducing v0.3+.
 
 
-## D-016 — Adopt Brain ↔ Spine Message Contract v0.2 and Freeze Spine Protocol Stack
+## D-017 — Adopt Brain ↔ Spine Message Contract v0.2 and Freeze Spine Protocol Stack
 
 **Date:** 2026-01-XX  
 **Status:** Adopted  
@@ -187,6 +194,31 @@ These items remain planned and are tracked in the backlog.
 - All future Spine-side message handling MUST consume validated packets
   produced by the framer and validators defined above
 
+### D-018 — Introduce Shared Brain-side Protocol Interface
+
+**Date:** 2026-01-XX  
+**Status:** Adopted
+
+**Decision:**
+Introduce a shared Brain-side protocol interface header (`bs_protocol.h`) to define
+common types and function boundaries between Brain-side protocol components.
+
+**Rationale:**
+During Stage 2.2, multiple Brain-side components required access to shared protocol
+structures (header representation, validation results, framer state). A single shared
+interface prevents duplication, drift, and unsafe coupling while preserving deterministic
+behavior.
+
+**Impact:**
+- No changes to protocol semantics
+- No changes to Brain ↔ Spine authority boundaries
+- Enables independent compilation, testing, and tooling on the Brain side
+
+**Notes:**
+This decision supersedes D-015, which adopted v0.1 of the contract.
+
+This decision affects Brain-side code organization only and does not modify
+BRAIN_SPINE_MESSAGE_CONTRACT.md v0.2.
 
 ---
 
