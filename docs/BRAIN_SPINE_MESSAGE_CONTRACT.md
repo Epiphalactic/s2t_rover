@@ -1,20 +1,20 @@
 # Brain ↔ Spine Message Contract (v0.2)
 
-Status: Normative Specification  
-Applies to: S2T Rover “Brain” (SBC) ↔ “Spine” (MCU) link  
-Primary goal (Stage 2): Infrastructure hardening: safety gating, deterministic liveness, and observability over a stable message interface.  
-Non-goals: Autonomy, feature work, sensor taxonomies, multi-node discovery, security/encryption, CAN bus electrical/arbitration specifics.
+**Status:** Normative Specification  
+**Applies to:** S2T Rover “Brain” (SBC) ↔ “Spine” (MCU) link  
+**Primary goal (Stage 2):** Infrastructure hardening: safety gating, deterministic liveness, and observability over a stable message interface.  
+**Non-goals:** Autonomy, feature work, sensor taxonomies, multi-node discovery, security/encryption, CAN bus electrical/arbitration specifics.
 
 ---
 
 ## 1. Definitions
 
-- Brain: High-level compute node (Linux-class) responsible for orchestration, UI, logging, and deployments.
-- Spine: Real-time microcontroller node responsible for hardware interfacing, safety reflexes, and motion authority.
-- Transport: A byte-delivery mechanism (e.g., USB serial now; CAN later). The message contract is independent of transport.
-- Packet: One complete contract-defined message (header + payload + trailer).
-- Session: A Brain boot instance interacting with a Spine boot instance.
-- Axis: A controllable degree of freedom exposed by Spine (e.g., left/right drive). Axes are identified by axis_id.
+- **Brain:** High-level compute node (Linux-class) responsible for orchestration, UI, logging, and deployments.
+- **Spine:** Real-time microcontroller node responsible for hardware interfacing, safety reflexes, and motion authority.
+- **Transport:** A byte-delivery mechanism (e.g., USB serial now; CAN later). The message contract is independent of transport.
+- **Packet:** One complete contract-defined message (header + payload + trailer).
+- **Session:** A Brain boot instance interacting with a Spine boot instance.
+- **Axis:** A controllable degree of freedom exposed by Spine (e.g., left/right drive). Axes are identified by `axis_id`.
 
 ---
 
@@ -35,14 +35,20 @@ Upon boot, link loss, protocol error, or fault escalation, Spine MUST transition
 ## 3. Safety Invariants (Hard Rules)
 
 ### 3.1 Silence equals stop
-If Spine is in a motion-enabled state and does not receive valid keepalive traffic within the configured hold timeout, Spine MUST disable motion and transition to SAFE (or FAULT if appropriate).
+If Spine is in a motion-enabled state and does not receive valid keepalive traffic within
+the configured hold timeout, Spine MUST disable motion, raise fault KEEPALIVE_TIMEOUT (1005),
+and transition to FAULT.
 
-### 3.2 Keepalive traffic definition (Frozen for v0.1)
-For v0.1, keepalive traffic is defined as:
 
-- Receipt of a valid B2S_HEARTBEAT packet
+### 3.2 Keepalive traffic definition (Frozen for Stage 2 / message set v0.1)
+For Stage 2, keepalive traffic is defined as:
 
-Setpoints SHALL NOT count as keepalive traffic.
+- Receipt of a **valid and accepted** `B2S_HEARTBEAT` message for the **current session**.
+
+Clarifications:
+- “Valid and accepted” means: packet passes integrity checks (Section 5.5), `payload_len` is correct for the message type (Section 8.3), and semantic validity checks pass (including session match per Section 8.3.2).
+- Setpoints SHALL NOT count as keepalive traffic.
+- Any rejected or discarded message MUST NOT count as keepalive traffic.
 
 ### 3.3 Setpoints are not permissions
 Spine MUST ignore setpoints unless motion is enabled and the session is valid.
@@ -59,14 +65,14 @@ Brain MUST NOT be relied upon to stop motion on loss of link. Any Brain-side “
 ## 4. Versioning and Compatibility
 
 ### 4.1 Protocol version fields
-Protocol version fields (proto_major, proto_minor) are included in every packet.
+Protocol version fields (`proto_major`, `proto_minor`) are included in every packet.
 
 - v0.x indicates breaking changes may occur between minor revisions
 - Within a single repo release, versions MUST match across Brain and Spine
 
 ### 4.2 Forward compatibility rule
-- A receiver MUST reject packets with an unknown proto_major
-- A receiver MAY reject packets with a higher proto_minor than it supports
+- A receiver MUST reject packets with an unknown `proto_major`
+- A receiver MAY reject packets with a higher `proto_minor` than it supports
 
 ---
 
@@ -76,10 +82,9 @@ Protocol version fields (proto_major, proto_minor) are included in every packet.
 Little-endian for all multi-byte fields.
 
 ### 5.2 Packet structure
-[Header][Payload (0..N bytes)][Trailer]
+`[Header][Payload (0..N bytes)][Trailer]`
 
 ### 5.3 Header (Fixed)
-
 All fields are mandatory.
 
 Field            | Type | Meaning
@@ -101,28 +106,43 @@ Field            | Type | Meaning
 -----------------|------|--------------------------------
 payload_crc32    | u32  | CRC-32 of payload bytes (0 if no payload)
 
-### 5.5 Integrity requirements
+### 5.5 Integrity requirements (Normative)
+Receivers MUST enforce the following integrity rules before semantic processing:
 
-- Receiver MUST validate magic
-- Receiver MUST validate header_crc16
-- Receiver MUST validate payload_crc32 when payload_len > 0
-- On failure, packet MUST be discarded and MUST NOT affect motion enable state except via timeout rules
+- Receiver MUST validate `magic`.
+- Receiver MUST validate `header_crc16`.
+- Receiver MUST validate `payload_crc32` when `payload_len > 0`.
+- If `payload_len == 0`, `payload_crc32` MUST be `0` (otherwise reject).
+- On any integrity failure, the packet MUST be discarded and MUST NOT affect motion enable state except via timeout rules.
+
+Additional requirements:
+- A discarded packet MUST NOT count as keepalive traffic.
+- Implementations MAY emit observability signals (ACK and/or FAULT) for integrity failures **only if** doing so does not require trusting corrupted fields (see Section 11 notes for CRC faults). Emission SHOULD be rate-limited to avoid link flooding.
+
+Clarification (Normative):
+- A discarded packet MUST NOT:
+  - start or replace a session,
+  - count as keepalive traffic,
+  - change motion permission (i.e., it MUST NOT be treated as an accepted MOTION_ENABLE),
+  - apply or clamp a setpoint.
+- Discarding a packet does not prevent Spine from emitting S2B_ACK(REJECTED) and/or
+  raising a fault per Section 11. If a raised fault has disables_motion = 1, Spine MUST
+  set motion_permitted = 0 and transition to FAULT.
+
 
 ### 5.6 Framing (stream transports)
-For stream transports (e.g., USB serial), receiver MUST resynchronize using magic and payload_len.
+For stream transports (e.g., USB serial), receiver MUST resynchronize using `magic` and `payload_len`.
 
-### 5.7 Protocol Magic (Frozen for v0.1)
+### 5.7 Protocol Magic (Frozen for Stage 2 / message set v0.1)
 
     PROTO_MAGIC = 0x5332   // mnemonic: "S2"
 
 Packets with mismatched magic MUST be discarded.
 
 ### 5.8 CRC Definitions (Frozen for v0.2)
-
 To remove ambiguity, CRC algorithms are defined explicitly.
 
 #### 5.8.1 Header CRC (`header_crc16`)
-
 `header_crc16` SHALL use CRC-16/CCITT-FALSE with parameters:
 
 - width: 16
@@ -137,7 +157,6 @@ Computation rule:
 - Multi-byte fields remain little-endian in the header as transmitted.
 
 #### 5.8.2 Payload CRC (`payload_crc32`)
-
 `payload_crc32` SHALL use CRC-32/ISO-HDLC (CRC-32/IEEE 802.3) with parameters:
 
 - width: 32
@@ -153,7 +172,7 @@ Computation rule:
 
 ---
 
-## 6. Node IDs (v0.1)
+## 6. Node IDs (Stage 2 / v0.1)
 
 - 0 = Brain
 - 1 = Spine
@@ -166,18 +185,17 @@ All other IDs are reserved.
 
 Spine MUST expose a state value in HEARTBEAT and STATE_REPORT.
 
-State enum (v0.1):
+State enum (message set v0.1):
 
 - INIT    : Booting / not ready
 - SAFE    : Motion disabled; ready to enable
-- ENABLED : Motion permitted
+- ENABLED : Motion permitted (subject to liveness)
 - FAULT   : Motion disabled due to fault
 
 Spine MUST start in INIT and transition to SAFE when ready.  
-Spine MUST NOT enter ENABLED unless it has accepted MOTION_ENABLE(enable=1) for the current session.
+Spine MUST NOT enter ENABLED unless it has accepted `B2S_MOTION_ENABLE(enable=1)` for the current session.
 
 ### 7.1 Spine State Enum Numeric Values (Normative)
-
 The following numeric values are normative and SHALL be used wherever the Spine
 state is encoded or reported.
 
@@ -192,28 +210,25 @@ Values 0x04–0xFF are RESERVED for future use.
 
 ---
 
-## 8. Message Types and Semantics (v0.1)
+## 8. Message Types and Semantics (message set v0.1)
 
 Prefixes:
-- Brain to Spine: B2S_
-- Spine to Brain: S2B_
+- Brain to Spine: `B2S_`
+- Spine to Brain: `S2B_`
 
 Defined message types:
 
-- B2S_HELLO
-- S2B_IDENTITY
-- B2S_HEARTBEAT
-- S2B_HEARTBEAT
-- B2S_MOTION_ENABLE
-- B2S_MOTION_SETPOINT
-- S2B_STATE_REPORT
-- S2B_FAULT
-- S2B_ACK
-
-(Full payload definitions as previously adopted.)
+- `B2S_HELLO`
+- `S2B_IDENTITY`
+- `B2S_HEARTBEAT`
+- `S2B_HEARTBEAT`
+- `B2S_MOTION_ENABLE`
+- `B2S_MOTION_SETPOINT`
+- `S2B_STATE_REPORT`
+- `S2B_FAULT`
+- `S2B_ACK`
 
 ### 8.1 Brain → Spine Message Type IDs (Normative)
-
 The following message type IDs are normative and SHALL be used in the packet
 header `msg_type` field for Brain → Spine messages.
 
@@ -227,7 +242,6 @@ header `msg_type` field for Brain → Spine messages.
 IDs 0x14–0x2F are RESERVED for future Brain → Spine messages.
 
 ### 8.2 Spine → Brain Message Type IDs (Normative)
-
 The following message type IDs are normative and SHALL be used in the packet
 header `msg_type` field for Spine → Brain messages.
 
@@ -242,7 +256,6 @@ header `msg_type` field for Spine → Brain messages.
 IDs 0x85–0x9F are RESERVED for future Spine → Brain messages.
 
 ### 8.3 Payload Layouts (v0.2 — Normative)
-
 This section defines the exact byte-level payload layouts for all v0.2 message types
 listed in Section 8. Payload layouts are REQUIRED for compliance.
 
@@ -261,7 +274,6 @@ listed in Section 8. Payload layouts are REQUIRED for compliance.
   - NaN or ±Inf values MUST be rejected.
 
 #### 8.3.2 Session Validity Primitive (Normative)
-
 To support `SESSION_INVALID` fault code (Table 11), this contract defines a minimal
 session identifier carried in payloads:
 
@@ -353,13 +365,13 @@ Purpose: Spine liveness + state.
 
 Required payload length: 12 bytes
 
-Field           | Type | Offset | Notes
----------------|------|--------|---------------------------
-session_id      | u32  | 0      | Current session_id (0 if none)
-spine_uptime_ms | u32  | 4      | Monotonic since Spine boot; informational
-spine_state     | u8   | 8      | Values per Section 7.1
-motion_permitted| u8   | 9      | 0 = no, 1 = yes (logical permission only)
-reserved        | u16  | 10     | MUST be 0
+Field            | Type | Offset | Notes
+----------------|------|--------|---------------------------
+session_id       | u32  | 0      | Current session_id (0 if none)
+spine_uptime_ms  | u32  | 4      | Monotonic since Spine boot; informational
+spine_state      | u8   | 8      | Values per Section 7.1
+motion_permitted | u8   | 9      | 0 = no, 1 = yes (logical permission only)
+reserved         | u16  | 10     | MUST be 0
 
 ##### S2B_STATE_REPORT (msg_type 0x82)
 Purpose: periodic state snapshot (lightweight in v0.2).
@@ -403,7 +415,6 @@ spine_state     | u8   | 11     | Values per Section 7.1
 disables_motion | u8   | 12     | 0 = no, 1 = yes (must match Section 11)
 reserved        | u8[3]| 13     | MUST be 0
 
-
 ### Message ID Allocation Policy (Normative)
 
 - Message type IDs are uint8.
@@ -414,7 +425,7 @@ reserved        | u8[3]| 13     | MUST be 0
 
 ---
 
-## 9. Timing Requirements (Frozen for v0.1)
+## 9. Timing Requirements (Frozen for Stage 2 / message set v0.1)
 
     B2S_HEARTBEAT_PERIOD_MS   = 200
     S2B_HEARTBEAT_PERIOD_MS   = 100
@@ -436,7 +447,7 @@ axis_id | name        | supports | unit_code | min   | max
 1       | drive_right | velocity | mps       | -0.50 | +0.50
 
 Rules:
-- axis_id assignments MUST remain stable
+- `axis_id` assignments MUST remain stable
 - Spine MUST clamp or refuse values outside bounds
 - Brain MUST NOT assume undeclared axes
 
@@ -446,8 +457,8 @@ Rules:
 
 fault_code | name                 | severity | disables_motion | notes
 -----------|----------------------|----------|-----------------|----------------------
-1001 | CRC_HEADER_FAIL        | ERROR | yes | header CRC invalid
-1002 | CRC_PAYLOAD_FAIL       | ERROR | yes | payload CRC invalid
+1001 | CRC_HEADER_FAIL        | WARN  | no  | header CRC invalid; packet discarded; not keepalive
+1002 | CRC_PAYLOAD_FAIL       | WARN  | no  | payload CRC invalid; packet discarded; not keepalive
 1003 | UNKNOWN_MSG_TYPE       | WARN  | no  | ignored, logged
 1004 | SESSION_INVALID        | ERROR | yes | boot/session mismatch
 1005 | KEEPALIVE_TIMEOUT      | FATAL | yes | silence=stop invariant
@@ -456,9 +467,14 @@ fault_code | name                 | severity | disables_motion | notes
 1099 | INTERNAL_ERROR         | FATAL | yes | generic catch-all
 
 Rules:
-- ERROR or FATAL faults MUST disable motion immediately
-- Fault state MUST appear in subsequent heartbeats
-- Unknown fault codes MUST be treated as ERROR
+- ERROR or FATAL faults MUST disable motion immediately.
+- Fault state MUST appear in subsequent heartbeats/state reports.
+- CRC faults (1001/1002):
+  - MUST NOT revoke motion permission directly (only timeout rules can revoke due to lost keepalive).
+  - SHOULD be observable (e.g., counters and/or rate-limited `S2B_FAULT`), but emission strategy is implementation-defined.
+- Unknown fault codes:
+  - A receiver that does not recognize a `fault_code` in `S2B_FAULT` MUST treat it as at least ERROR for UI/alerting.
+  - The receiver SHALL still respect the `disables_motion` field carried in the `S2B_FAULT` payload.
 
 ---
 
