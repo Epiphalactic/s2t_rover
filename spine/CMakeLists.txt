@@ -12,6 +12,7 @@ pico_sdk_init()
 # --- TARGET 1: SCOUT SPINE (Main Rover Code) ---
 add_executable(scout_spine 
     main.cpp
+    proto_crc.cpp
     lib/pico-ssd1306/ssd1306.c
 )
 
